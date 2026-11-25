@@ -3,53 +3,83 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  OnDestroy,
   OnInit,
+  signal,
 } from '@angular/core';
-import { randText } from '@ngneat/falso';
+
+import { Todo } from './models/todo.model';
+import { TodoService } from './services/todo.service';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+
+
+interface statusObj{
+  loading:boolean,
+  hasError : boolean,
+  errorMessage:string
+}
 
 @Component({
-  imports: [],
+  imports: [MatProgressSpinnerModule],
   selector: 'app-root',
   template: `
-    @for (todo of todos; track todo.id) {
-      {{ todo.title }}
-      <button (click)="update(todo)">Update</button>
+    @if(status().loading){
+        <mat-spinner></mat-spinner>
+    }@else{
+      @for (todo of todos(); track todo.id) {
+        {{ todo.title }}
+        <button (click)="update(todo)">Update</button>
+        <button (click)="delete(todo)">Delete</button>
+      }
     }
+
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [],
 })
 export class AppComponent implements OnInit {
-  private http = inject(HttpClient);
+  private store = inject(TodoService);
+  private destroyRef = inject(DestroyRef);
+  private status = signal<statusObj>({
+    loading:false,
+    hasError:false,
+    errorMessage:''
+  });
 
-  todos!: any[];
+  todos = signal<Todo[]>([]);
 
   ngOnInit(): void {
-    this.http
-      .get<any[]>('https://jsonplaceholder.typicode.com/todos')
-      .subscribe((todos) => {
-        this.todos = todos;
-      });
+    this.status.set({
+      loading:false,
+      hasError:false,
+      errorMessage:''
+    })
+   this.store.fetchTodos().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next:(todos:Todo[])=>{
+        this.todos.set(todos);
+        
+      },
+      error:(error)=>{
+
+      },
+      complete: () => this.status.update((status) => ({ ...status, loading: false }))
+    });
   }
 
   update(todo: any) {
-    this.http
-      .put<any>(
-        `https://jsonplaceholder.typicode.com/todos/${todo.id}`,
-        JSON.stringify({
-          todo: todo.id,
-          title: randText(),
-          body: todo.body,
-          userId: todo.userId,
-        }),
-        {
-          headers: {
-            'Content-type': 'application/json; charset=UTF-8',
-          },
-        },
-      )
-      .subscribe((todoUpdated: any) => {
-        this.todos[todoUpdated.id - 1] = todoUpdated;
-      });
+    this.store.updateTodo(todo).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((todoUpdated: Todo) => {
+        this.todos.update((todos:Todo[])=> todos.map((todo)=>(todo.id==todoUpdated.id?todoUpdated:todo)))
+    });
   }
+
+  delete(deletetodo:Todo){
+    this.store.deleteTodo(deletetodo).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(
+      ()=> this.todos.update((todos:Todo[])=>todos.filter((todo)=>todo.id!=deletetodo.id))
+    );
+  }
+
 }
