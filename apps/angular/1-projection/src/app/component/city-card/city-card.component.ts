@@ -45,9 +45,9 @@ export class CityCardComponent implements OnInit {
   cardType = CardType.CITY;
 
   ngOnInit() {
-    this.httpservice.fetchCities$.subscribe(() => {
-      (t: City[]) => this.store.addAll(t);
-    });
+    this.httpservice.fetchCities$.subscribe((t: City[]) =>
+      this.store.addAll(t),
+    );
   }
 
   addnewitem(event: string) {
