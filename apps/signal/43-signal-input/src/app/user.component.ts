@@ -2,6 +2,8 @@ import { TitleCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  input,
   Input,
   OnChanges,
 } from '@angular/core';
@@ -18,23 +20,35 @@ const ageToCategory = (age: number): Category => {
   selector: 'app-user',
   imports: [TitleCasePipe],
   template: `
-    {{ fullName | titlecase }} plays tennis in the {{ category }} category!!
+    {{ fullName() | titlecase }} plays tennis in the {{ category() }} category!!
   `,
   host: {
     class: 'text-xl text-green-800',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserComponent implements OnChanges {
-  @Input({ required: true }) name!: string;
-  @Input() lastName?: string;
-  @Input() age?: string;
+export class UserComponent{
+  // @Input({ required: true }) name!: string;
+  // @Input() lastName?: string;
+  // @Input() age?: string;
 
-  fullName = '';
-  category: Category = 'Junior';
 
-  ngOnChanges(): void {
-    this.fullName = `${this.name} ${this.lastName ?? ''}`;
-    this.category = ageToCategory(Number(this.age));
-  }
+
+  
+
+  // fullName = '';
+  // category: Category = 'Junior';
+
+  // ngOnChanges(): void {
+  //   this.fullName = `${this.name} ${this.lastName ?? ''}`;
+  //   this.category = ageToCategory(Number(this.age));
+  // }
+
+
+  name = input.required<string>();
+  lastName = input<string>();
+  age = input<string>();
+
+  fullName = computed(()=>`${this.name()} ${this.lastName() ?? ''}`)
+  category = computed(() => ageToCategory(Number(this.age())));
 }
