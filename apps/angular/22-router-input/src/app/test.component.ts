@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 
@@ -8,15 +8,23 @@ import { map } from 'rxjs';
   imports: [AsyncPipe],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <div>TestId: {{ testId$ | async }}</div>
+    <!-- <div>TestId: {{ testId$ | async }}</div>
     <div>Permission: {{ permission$ | async }}</div>
-    <div>User: {{ user$ | async }}</div>
+    <div>User: {{ user$ | async }}</div> -->
+
+    <div>TestId: {{ testId() }}</div>
+    <div>Permission: {{ permission() }}</div>
+    <div>User: {{ user() }}</div>
   `,
 })
 export default class TestComponent {
   private activatedRoute = inject(ActivatedRoute);
 
-  testId$ = this.activatedRoute.params.pipe(map((p) => p['testId']));
-  permission$ = this.activatedRoute.data.pipe(map((d) => d['permission']));
-  user$ = this.activatedRoute.queryParams.pipe(map((q) => q['user']));
+  // testId$ = this.activatedRoute.params.pipe(map((p) => p['testId']));
+  // permission$ = this.activatedRoute.data.pipe(map((d) => d['permission']));
+  // user$ = this.activatedRoute.queryParams.pipe(map((q) => q['user']));
+
+  testId = input();
+  permission = input();
+  user = input();
 }
