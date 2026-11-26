@@ -48,4 +48,5 @@ export const APP_ROUTES:Routes = [
     ),
     canMatch :[isAdminGuard()]
   },
+  { path: '**', redirectTo: '' }
 ];

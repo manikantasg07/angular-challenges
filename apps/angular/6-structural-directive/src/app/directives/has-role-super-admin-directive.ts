@@ -21,7 +21,7 @@ class HasSuperAdminRoleDirective implements OnInit,OnDestroy{
          this.subscription = this.store.user$.subscribe({
             next:(user)=>{
                 this.viewContainerRef.clear();
-                const allowed = user?.isAdmin;
+                const allowed = user?.isAdmin && this.hasRoleSuperAdmin();
                 if(allowed){
                     this.viewContainerRef.createEmbeddedView(this.templateRef);
                 }

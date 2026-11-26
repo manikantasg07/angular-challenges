@@ -23,7 +23,5 @@ import { HasSuperAdminRoleDirective } from './directives/has-role-super-admin-di
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InformationComponent {
-  private readonly userStore = inject(UserStore);
 
-  user$ = this.userStore.user$;
 }
